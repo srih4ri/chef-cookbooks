@@ -1,0 +1,53 @@
+bash -c '
+if [ ! -f /usr/local/bin/chef-client ]; then
+  yum update -y
+  yum install -y wget git curl
+  yum install -y build-essential binutils-doc gcc autoconf flex bison
+  yum install -y gcc-c++ make patch openssl-devel readline-devel  zlib-devel libxml2-devel libxslt-devel
+
+if [ ! -f ruby-enterprise-1.8.7-2011.03.tar.gz ]
+then
+ wget http://rubyenterpriseedition.googlecode.com/files/ruby-enterprise-1.8.7-2011.03.tar.gz
+fi
+
+tar zxf ruby-enterprise-1.8.7-2011.03.tar.gz
+mkdir -p /opt/ree
+ruby-enterprise-1.8.7-2011.03/installer --auto='/opt/ree'
+touch /etc/profile.d/ree.sh
+echo 'PATH=$PATH:/opt/ree/bin'>>/etc/profile.d/ree.sh
+source /etc/profile.d/ree.sh
+  gem install ohai chef --no-rdoc --no-ri --verbose <%= '--prerelease' if @config[:prerelease] %>
+  ln -nfs $(which chef-client) /usr/bin/chef-client
+fi
+ 
+mkdir -p /etc/chef
+ 
+(
+cat <<'EOP'
+<%= IO.read(Chef::Config[:validation_key]) %>
+EOP
+) > /tmp/validation.pem
+awk NF /tmp/validation.pem > /etc/chef/validation.pem
+rm /tmp/validation.pem
+ 
+(
+cat <<'EOP'
+log_level        :info
+log_location     STDOUT
+chef_server_url  "<%= Chef::Config[:chef_server_url] %>"
+validation_client_name "<%= Chef::Config[:validation_client_name] %>"
+<% if @config[:chef_node_name] == nil %>
+# Using default node name"
+<% else %>
+node_name "<%= @config[:chef_node_name] %>"
+<% end %> 
+EOP
+) > /etc/chef/client.rb
+ 
+(
+cat <<'EOP'
+<%= { "run_list" => @run_list }.to_json %>
+EOP
+) > /etc/chef/first-boot.json
+ 
+chef-client -j /etc/chef/first-boot.json'
