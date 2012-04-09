@@ -1,3 +1,5 @@
+<%  ree_install_path = '/opt/ruby-enterprise' -%>
+
 bash -c '
 if [ ! -f /usr/local/bin/chef-client ]; then
   yum update -y
@@ -11,12 +13,12 @@ then
 fi
 
 tar zxf ruby-enterprise-1.8.7-2011.03.tar.gz
-mkdir -p /opt/ree
-ruby-enterprise-1.8.7-2011.03/installer --auto='/opt/ree'
+mkdir -p <%= ree_install_path %>
+ruby-enterprise-1.8.7-2011.03/installer --auto='<%= ree_install_path %>'
 touch /etc/profile.d/ree.sh
-echo 'PATH=$PATH:/opt/ree/bin'>>/etc/profile.d/ree.sh
+echo 'PATH=$PATH:<%= ree_install_path %>/bin'>>/etc/profile.d/ree.sh
 source /etc/profile.d/ree.sh
-  gem install ohai chef --no-rdoc --no-ri --verbose <%= '--prerelease' if @config[:prerelease] %>
+  gem install ohai chef ruby-shadow --no-rdoc --no-ri --verbose <%= '--prerelease' if @config[:prerelease] %>
   ln -nfs $(which chef-client) /usr/bin/chef-client
 fi
  
