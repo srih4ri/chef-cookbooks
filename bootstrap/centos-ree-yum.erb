@@ -14,7 +14,7 @@ fi
 
 tar zxf ruby-enterprise-1.8.7-2011.03.tar.gz
 mkdir -p <%= ree_install_path %>
-ruby-enterprise-1.8.7-2011.03/installer --auto='<%= ree_install_path %>'
+ruby-enterprise-1.8.7-2011.03/installer --auto='<%= ree_install_path %>' --dont-install-useful-gems --no-dev-docs
 touch /etc/profile.d/ree.sh
 echo 'PATH=$PATH:<%= ree_install_path %>/bin'>>/etc/profile.d/ree.sh
 source /etc/profile.d/ree.sh
